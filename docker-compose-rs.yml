@@ -1,0 +1,43 @@
+mongo2:
+  hostname: mongo.r2.local
+  image: mongo
+  entrypoint: ["/usr/bin/mongod", "--replSet", "rs", "--journal", "--smallfiles"]
+  ports:
+    - 27022:27017
+  restart: always
+  volumes:
+    - /data/db/m02:/data/db
+
+mongo1:
+  hostname: mongo.r0.local
+  image: mongo
+  entrypoint: ["/usr/bin/mongod", "--replSet", "rs", "--journal", "--smallfiles"]
+  ports:
+    - 27021:27017
+  restart: always
+  volumes:
+    - /data/db/m01:/data/db
+
+mongo0:
+  hostname: mongo.r0.local
+  image: mongo
+  entrypoint: ["/usr/bin/mongod", "--replSet", "rs", "--journal", "--smallfiles"]
+  ports:
+    - 27020:27017
+  links:
+    - mongo1:mongo1
+    - mongo2:mongo2
+  restart: always
+  volumes:
+    - /data/db/m00:/data/db
+
+replicaset:
+  image: mongo
+  hostname: mongo.weave.local
+  links:
+    - mongo0:mongo0
+    - mongo1:mongo1
+    - mongo2:mongo2
+  volumes:
+    - ./scripts:/scripts
+  entrypoint: [ "/scripts/start-rs.sh" ]

@@ -1,0 +1,42 @@
+mongo_cfg2:
+  hostname: mongo.conf2.local
+  image: mongo
+  entrypoint: ["/usr/bin/mongod", "-configsvr", "--smallfiles"]
+  ports:
+    - 17022:27019
+  restart: always
+  volumes:
+    - /data/db/mc02:/data/configdb
+
+mongo_cfg1:
+  hostname: mongo.conf1.local
+  image: mongo
+  entrypoint: ["/usr/bin/mongod", "-configsvr", "--smallfiles"]
+  ports:
+    - 17021:27019
+  restart: always
+  volumes:
+    - /data/db/mc01:/data/configdb
+
+mongo_cfg0:
+  hostname: mongo.conf0.local
+  image: mongo
+  entrypoint: ["/usr/bin/mongod", "-configsvr", "--smallfiles"]
+  ports:
+    - 17020:27019
+  restart: always
+  volumes:
+    - /data/db/mc00:/data/configdb
+
+mongos:
+  image: mongo
+  hostname: mongo.router.local
+  links:
+    - mongo_cfg0:mongo_cfg0
+    - mongo_cfg1:mongo_cfg1
+    - mongo_cfg2:mongo_cfg2
+  volumes:
+    - ./scripts:/scripts
+  ports:
+    - 27000:27017
+  entrypoint: ["/scripts/start-mongos.sh"]
